@@ -11,6 +11,8 @@ local spyURLs = {
 "https://raw.githubusercontent.com/realredz/SimpleSpy/refs/heads/main/Mobile.lua"))()",
 "https://paste.ee/r/hK1Q4D65"))()",
 "https://pastebin.com/raw/qyf0wnB8"))()",
+"https://pastefy.app/ciVAPrzv/raw",
+"https://pastefy.app/ciVAPrzv/raw",true))()",
 "https://raw.githubusercontent.com/TheRealCrazyfuy/DivineHubCracked/main/DivineHubV1'))()",
 "https://raw.githubusercontent.com/CookieCrumble2/Roblox/refs/heads/main/Utilities/SkidSpy.lua",
 "https://raw.githubusercontent.com/venoxcc/universalscripts/refs/heads/main/http_spy",
