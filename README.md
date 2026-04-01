@@ -1,19 +1,16 @@
-
 local webhookURL = "https://discord.com/api/webhooks/1487054370427113482/rcdMq1CvZzY76Krdzz1S0EVMN3Z9ueFvhfS1jUMatS95Y9i2T-_crvP4il8f23V54Ew6"
 
 local spyURLs = {
 "https://rawscripts.net/raw/Universal-Script-OctoSpy-22363",
 "https://raw.githubusercontent.com/CookieCrumble2/SkidSpy/refs/heads/main/Loader.luau",
 "https://seere.vip/cracks/httpspy.lua",
-"https://seere.vip/cracks/httpspy.lua"%7D).Body)()",
 "https://gist.githubusercontent.com/Foki42/e74135b56009426bfdc2e6a1bedbdde0/raw/",
-"https://raw.githubusercontent.com/REDzHUB/RS/main/SimpleSpyMobile"))()",
-"https://raw.githubusercontent.com/realredz/SimpleSpy/refs/heads/main/Mobile.lua"))()",
-"https://paste.ee/r/hK1Q4D65"))()",
-"https://pastebin.com/raw/qyf0wnB8"))()",
+"https://raw.githubusercontent.com/REDzHUB/RS/main/SimpleSpyMobile",
+"https://raw.githubusercontent.com/realredz/SimpleSpy/refs/heads/main/Mobile.lua",
+"https://paste.ee/r/hK1Q4D65",
+"https://pastebin.com/raw/qyf0wnB8",
 "https://pastefy.app/ciVAPrzv/raw",
-"https://pastefy.app/ciVAPrzv/raw",true))()",
-"https://raw.githubusercontent.com/TheRealCrazyfuy/DivineHubCracked/main/DivineHubV1'))()",
+"https://raw.githubusercontent.com/TheRealCrazyfuy/DivineHubCracked/main/DivineHubV1",
 "https://raw.githubusercontent.com/CookieCrumble2/Roblox/refs/heads/main/Utilities/SkidSpy.lua",
 "https://raw.githubusercontent.com/venoxcc/universalscripts/refs/heads/main/http_spy",
 "https://rawscripts.net/raw/Universal-Script-Remote-Go-Brr-148284",
@@ -52,7 +49,7 @@ end
 
 local function getMapName()
     local success, map = pcall(function()
-        return game:GetService("Workspace").CurrentCamera.Name
+        return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
     end)
     if success then
         return map
@@ -60,7 +57,7 @@ local function getMapName()
     return "Desconhecido"
 end
 
-local function sendToWebhook(playerName, country, mapName, dateTime)
+local function sendToWebhook(playerName, country, mapName, dateTime, detectedURL)
     local embed = {
         ["embeds"] = {{
             ["title"] = "🚨 Spy Detectado! 🚨",
@@ -86,6 +83,11 @@ local function sendToWebhook(playerName, country, mapName, dateTime)
                     ["name"] = "📅 Data/Horário",
                     ["value"] = dateTime,
                     ["inline"] = false
+                },
+                {
+                    ["name"] = "🔍 URL Detectada",
+                    ["value"] = "```" .. detectedURL .. "```",
+                    ["inline"] = false
                 }
             },
             ["footer"] = {
@@ -95,79 +97,130 @@ local function sendToWebhook(playerName, country, mapName, dateTime)
         }}
     }
     
-    local success, err = pcall(function()
-        game:GetService("HttpService"):PostAsync(webhookURL, game:GetService("HttpService"):JSONEncode(embed))
+    pcall(function()
+        game:GetService("HttpService"):PostAsync(webhookURL, game:GetService("HttpService"):JSONEncode(embed), Enum.HttpContentType.ApplicationJson)
     end)
-    
-    if not success then
-        warn("Erro ao enviar webhook: " .. tostring(err))
+end
+
+local function kickPlayer()
+    local player = game:GetService("Players").LocalPlayer
+    if player then
+        player:Kick("Spy Detectado!")
     end
 end
 
-local function kickPlayer(reason)
-    local player = game:GetService("Players").LocalPlayer
-    if player then
-        player:Kick(reason or "Spy Detectado!")
+local function containsSpyURL(code)
+    if not code or type(code) ~= "string" then return false, nil end
+    for _, url in ipairs(spyURLs) do
+        if string.find(code, url, nil, true) then
+            return true, url
+        end
     end
+    return false, nil
 end
 
 local originalLoadstring = loadstring
-local httpService = game:GetService("HttpService")
-
-local function containsSpyURL(code)
-    for _, url in ipairs(spyURLs) do
-        if code and string.find(code, url) then
-            return true
-        end
-    end
-    return false
-end
 
 _G.loadstring = function(code, chunkname)
-    if containsSpyURL(code) then
-
+    local isSpy, detectedURL = containsSpyURL(code)
+    if isSpy then
         local player = game:GetService("Players").LocalPlayer
         local playerName = player and player.Name or "Desconhecido"
         local country = getPlayerCountry()
         local mapName = getMapName()
         local dateTime = os.date("%d/%m/%Y %H:%M:%S", os.time())
         
-        sendToWebhook(playerName, country, mapName, dateTime)
-        
-        kickPlayer("Spy Detectado!")
-        
-        error("Spy Detectado! Execução bloqueada.", 0)
-        return nil, "Spy Detectado!"
+        sendToWebhook(playerName, country, mapName, dateTime, detectedURL)
+        task.wait(0.5)
+        kickPlayer()
+        task.wait(0.5)
+        error("Spy Detectado!", 0)
+        return nil
     end
-    
     return originalLoadstring(code, chunkname)
 end
 
-local originalHttpGet = game:GetService("HttpService").GetAsync
+local httpService = game:GetService("HttpService")
+local originalHttpGet = httpService.GetAsync
+local originalHttpGetAsync = httpService.HttpGetAsync
+
+httpService.GetAsync = function(self, url, ...)
+    local isSpy, detectedURL = containsSpyURL(url)
+    if isSpy then
+        local player = game:GetService("Players").LocalPlayer
+        local playerName = player and player.Name or "Desconhecido"
+        local country = getPlayerCountry()
+        local mapName = getMapName()
+        local dateTime = os.date("%d/%m/%Y %H:%M:%S", os.time())
+        
+        sendToWebhook(playerName, country, mapName, dateTime, detectedURL)
+        task.wait(0.5)
+        kickPlayer()
+        error("Spy Detectado!", 0)
+        return nil
+    end
+    return originalHttpGet(self, url, ...)
+end
+
+httpService.HttpGetAsync = function(self, url, ...)
+    local isSpy, detectedURL = containsSpyURL(url)
+    if isSpy then
+        local player = game:GetService("Players").LocalPlayer
+        local playerName = player and player.Name or "Desconhecido"
+        local country = getPlayerCountry()
+        local mapName = getMapName()
+        local dateTime = os.date("%d/%m/%Y %H:%M:%S", os.time())
+        
+        sendToWebhook(playerName, country, mapName, dateTime, detectedURL)
+        task.wait(0.5)
+        kickPlayer()
+        error("Spy Detectado!", 0)
+        return nil
+    end
+    return originalHttpGetAsync(self, url, ...)
+end
+
+httpService.HttpPostAsync = function(self, url, ...)
+    local isSpy, detectedURL = containsSpyURL(url)
+    if isSpy then
+        local player = game:GetService("Players").LocalPlayer
+        local playerName = player and player.Name or "Desconhecido"
+        local country = getPlayerCountry()
+        local mapName = getMapName()
+        local dateTime = os.date("%d/%m/%Y %H:%M:%S", os.time())
+        
+        sendToWebhook(playerName, country, mapName, dateTime, detectedURL)
+        task.wait(0.5)
+        kickPlayer()
+        error("Spy Detectado!", 0)
+        return nil
+    end
+    return originalHttpPost(self, url, ...)
+end
 
 pcall(function()
     local mt = getrawmetatable(game)
     local old = mt.__namecall
     setreadonly(mt, false)
-    mt.__namecall = newcclosure(function(self, ...)
+    mt.__namecall = function(self, ...)
         local method = getnamecallmethod()
         local args = {...}
         
-        if method == "HttpGet" and #args > 0 then
+        if method == "HttpGet" or method == "HttpGetAsync" or method == "GetAsync" then
             local url = tostring(args[1])
-            for _, spyURL in ipairs(spyURLs) do
-                if string.find(url, spyURL) then
-                    local player = game:GetService("Players").LocalPlayer
-                    local playerName = player and player.Name or "Desconhecido"
-                    local country = getPlayerCountry()
-                    local mapName = getMapName()
-                    local dateTime = os.date("%d/%m/%Y %H:%M:%S", os.time())
-                    
-                    sendToWebhook(playerName, country, mapName, dateTime)
-                    kickPlayer("Spy Detectado!")
-                    error("Spy Detectado!", 0)
-                    return nil
-                end
+            local isSpy, detectedURL = containsSpyURL(url)
+            if isSpy then
+                local player = game:GetService("Players").LocalPlayer
+                local playerName = player and player.Name or "Desconhecido"
+                local country = getPlayerCountry()
+                local mapName = getMapName()
+                local dateTime = os.date("%d/%m/%Y %H:%M:%S", os.time())
+                
+                sendToWebhook(playerName, country, mapName, dateTime, detectedURL)
+                task.wait(0.5)
+                kickPlayer()
+                error("Spy Detectado!", 0)
+                return nil
             end
         end
         
@@ -175,8 +228,8 @@ pcall(function()
             return old(self, ...)
         end
         return nil
-    end)
+    end
     setreadonly(mt, true)
 end)
 
-print("Sistema Anti-Spy ativado! By Denolk")
+print("Anti-Spy Ativado! by denolk")
